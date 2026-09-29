@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "Game": {
+      "title": "Game",
+      "description": "Represents a Snake and Ladders game session",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["waiting", "playing", "finished"],
+          "description": "Current status of the game"
+        },
+        "players": {
+          "type": "array",
+          "description": "List of players in the game"
+        },
+        "turnIndex": {
+          "type": "number",
+          "description": "Index of the player whose turn it is"
+        },
+        "lastRoll": {
+          "type": "number",
+          "description": "The result of the last dice roll"
+        },
+        "winner": {
+          "type": "string",
+          "description": "UID of the winner"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the game was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the game was last updated"
+        },
+        "hostId": {
+          "type": "string",
+          "description": "UID of the player who created the game"
+        }
+      },
+      "required": ["status", "players", "turnIndex", "hostId"]
+    }
+  },
+  "firestore": {
+    "/games/{gameId}": {
+      "schema": "Game",
+      "description": "Snake and Ladders game sessions"
+    }
+  }
+}

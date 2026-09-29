@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: games
+    // Document ID: auto-generated
+    // Fields:
+    //   - status: string (waiting, playing, finished)
+    //   - players: list (objects with uid, name, color, position, type)
+    //   - turnIndex: number
+    //   - lastRoll: number (optional)
+    //   - winner: string (optional)
+    //   - hostId: string
+    //   - createdAt: timestamp
+    //   - updatedAt: timestamp
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isGamePlayer(gameData) {
+      return isAuthenticated() && (
+        gameData.players.exists(p, p.uid == request.auth.uid) ||
+        gameData.hostId == request.auth.uid
+      );
+    }
+
+    function isValidGame(data) {
+      return data.status in ['waiting', 'playing', 'finished'] &&
+             data.players is list &&
+             data.turnIndex is number &&
+             data.hostId is string &&
+             data.hostId.size() > 0;
+    }
+
+    match /games/{gameId} {
+      allow read: if isAuthenticated();
+      
+      allow create: if isAuthenticated() && 
+                      isValidGame(request.resource.data) &&
+                      request.resource.data.hostId == request.auth.uid;
+      
+      allow update: if isAuthenticated() && 
+                      isValidGame(request.resource.data) &&
+                      (isGamePlayer(resource.data) || resource.data.status == 'waiting');
+      
+      allow delete: if isAuthenticated() && resource.data.hostId == request.auth.uid;
+    }
+  }
+}
